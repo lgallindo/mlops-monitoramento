@@ -5,7 +5,13 @@ devolve um preço previsto. O log grava `x`, `y_obs`, `ŷ`, a faixa
 `baixo` / `medio` / `alto`, o resíduo, a latência e se houve erro.
 
 A janela recente manda `x` maior. A reta é a mesma; os `ŷ` ficam maiores.
-O monitor calcula KS sobre `ŷ` e PSI sobre as faixas.
+O monitor calcula KS sobre `ŷ`, PSI sobre as faixas, e MAE
+`média |y_obs − ŷ|` só nas linhas que têm `y_obs`.
+
+A **taxa de falha** (`error_rate`) conta `error = true` no log: o processo
+quebrou. O **MAE** conta o desvio da reta quando existe rótulo. São dois
+números. Sem `y_obs` no pedido, o GUI deixa `y_obs` e `residual` nulos e
+o MAE ignora a linha.
 
 ```bash
 cd ~/mlops-monitoramento

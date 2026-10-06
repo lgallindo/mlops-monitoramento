@@ -7,7 +7,7 @@ from collections import Counter
 from mlops_monitoramento.ks import alert_ks, ks_two_sample
 from mlops_monitoramento.p95 import p95
 from mlops_monitoramento.psi import alert_psi, population_stability_index
-from mlops_monitoramento.regressao import ajustar, prever
+from mlops_monitoramento.regressao import ajustar, erro_absoluto_medio, prever
 from mlops_monitoramento.tokenizar import contar_tokens, faixa_n_tokens
 
 
@@ -49,6 +49,25 @@ def test_reta_recupera_inclinacao():
     assert abs(reta.a - 2.0) < 1e-9
     assert abs(reta.b - 3.0) < 1e-9
     assert abs(prever(reta, 10.0) - 23.0) < 1e-9
+
+
+def test_mae_so_linhas_com_y_obs():
+    rows = [
+        {"y_obs": 10.0, "y_hat": 11.0},
+        {"y_obs": None, "y_hat": 99.0},
+        {"y_hat": 50.0},
+        {"y_obs": 4.0, "y_hat": 6.0},
+    ]
+    mae, n = erro_absoluto_medio(rows)
+    assert n == 2
+    assert mae is not None
+    assert abs(mae - 1.5) < 1e-9
+
+
+def test_mae_sem_rotulo_e_none():
+    mae, n = erro_absoluto_medio([{"y_hat": 1.0}])
+    assert mae is None
+    assert n == 0
 
 
 class _FakeTok:

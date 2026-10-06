@@ -1,6 +1,7 @@
 # ADR 0002 — Painel HTML lado a lado
 
-- Status: accepted
+- Status: superseded
+- Superseded-by: ADR 0003
 - Date: 2026-10-06T12:04:13Z
 - Deciders: Lucas Gallindo
 

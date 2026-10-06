@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "bentoml>=1.4.39",
     "numpy>=2.4.6",
     "pillow>=12.3.0",
     "transformers>=5.18.0",

@@ -1,0 +1,51 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Imagens",
+    "version": "1.0.0",
+    "description": "Monta um cinza com brilho médio pedido e classifica escuro / medio / claro."
+  },
+  "paths": {
+    "/imagens": {
+      "post": {
+        "summary": "Enviar brilho médio",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["brilho"],
+                "properties": {
+                  "brilho": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Brilho médio alvo em [0, 1]. 0 é preto; 1 é branco."
+                  }
+                }
+              },
+              "example": { "brilho": 0.2 }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pedido com rótulo, confiança e relatório.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pedido": { "type": "object" },
+                    "relatorio": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

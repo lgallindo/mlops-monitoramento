@@ -1,0 +1,53 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Regressão",
+    "version": "1.0.0",
+    "description": "Prevê ŷ = a·x + b. y_obs é o valor medido no mundo; sem ele o MAE ignora o pedido."
+  },
+  "paths": {
+    "/regressao": {
+      "post": {
+        "summary": "Enviar x e, se houver, o y observado",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["x"],
+                "properties": {
+                  "x": {
+                    "type": "number",
+                    "description": "Entrada da reta (ex.: tamanho do pedido). Sempre obrigatório."
+                  },
+                  "y_obs": {
+                    "type": "number",
+                    "description": "Valor real medido para esse x (rótulo). Sem y_obs o log grava só ŷ; o MAE não usa essa linha. Não confundir com error do serviço."
+                  }
+                }
+              },
+              "example": { "x": 30, "y_obs": 90 }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pedido com y_hat, y_obs (ou null) e residual (ou null).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pedido": { "type": "object" },
+                    "relatorio": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -11,12 +11,14 @@ from mlops_monitoramento.jsonl import load_jsonl, write_report
 from mlops_monitoramento.ks import alert_ks, ks_two_sample
 from mlops_monitoramento.p95 import alert_p95, p95
 from mlops_monitoramento.psi import alert_psi, population_stability_index
+from mlops_monitoramento.regressao import erro_absoluto_medio
 
 LOGS = Path(__file__).resolve().parent / "logs"
 KS_LIMIAR = 0.25
 PSI_LIMIAR = 0.2
 LAT_P95_LIMIAR_MS = 8.0
 ERR_LIMIAR = 0.05
+MAE_LIMIAR = 8.0
 
 
 def main() -> int:
@@ -35,14 +37,18 @@ def main() -> int:
     )
     lat = p95([float(r["latency_ms"]) for r in rec])
     err = sum(1 for r in rec if r.get("error")) / len(rec)
+    mae, n_rotulo = erro_absoluto_medio(rec)
     report = {
         "task": "regressao_preco",
         "n_baseline": len(base),
         "n_recente": len(rec),
+        "n_com_y_obs": n_rotulo,
         "ks_y_hat": round(d, 4),
         "alert_ks_y_hat": alert_ks(d, threshold=KS_LIMIAR),
         "psi_y_hat_bin": round(psi, 4),
         "alert_psi_y_hat": alert_psi(psi, threshold=PSI_LIMIAR),
+        "mae": None if mae is None else round(mae, 4),
+        "alert_mae": False if mae is None else mae >= MAE_LIMIAR,
         "latency_p95_ms": round(lat, 3),
         "alert_latency": alert_p95(lat, threshold=LAT_P95_LIMIAR_MS),
         "error_rate": round(err, 4),
@@ -50,6 +56,7 @@ def main() -> int:
         "thresholds": {
             "ks": KS_LIMIAR,
             "psi": PSI_LIMIAR,
+            "mae": MAE_LIMIAR,
             "latency_p95_ms": LAT_P95_LIMIAR_MS,
             "error_rate": ERR_LIMIAR,
         },
@@ -61,6 +68,7 @@ def main() -> int:
         "alert_psi_y_hat",
         "alert_latency",
         "alert_errors",
+        "alert_mae",
     )
     return 1 if any(report[k] for k in flags) else 0
 

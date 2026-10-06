@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import random
 import time
 from dataclasses import dataclass
 
@@ -56,3 +57,12 @@ def brightness_bin(b: float) -> str:
     if b < B_HI:
         return "b1"
     return "b2"
+
+
+def make_gray(*, mean: float, seed: int, size: int = 64) -> Image.Image:
+    rng = random.Random(seed)
+    base = int(max(0, min(255, mean * 255)))
+    pixels = bytes(
+        max(0, min(255, base + rng.randint(-20, 20))) for _ in range(size * size)
+    )
+    return Image.frombytes("L", (size, size), pixels)

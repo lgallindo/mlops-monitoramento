@@ -28,6 +28,56 @@ Ordenadas: `10, 10, 11, 11, 12, 12, 12, 13, 14, 80`.
 Erro e p95 estáveis deixam o painel de DevOps verde. Esse painel mede o
 processo. A mistura do que chega na porta é outra medição.
 
+## O que fazer nesta página
+
+[A preencher.]
+
+## Abrir o painel
+
+Python 3.11+. Na raiz do clone, o setup deixa o ambiente e os logs
+prontos. O painel abre no browser.
+
+```bash
+just setup
+```
+
+Na primeira vez, `exemplos/tokens/` baixa o tokenizer para `hf-cache/`
+na raiz do clone (vocabulário). Essa etapa usa a rede.
+
+```bash
+just painel
+```
+
+Esse comando ocupa o terminal. Deixe-o aberto e vá ao browser:
+[http://127.0.0.1:3001/gui/](http://127.0.0.1:3001/gui/) ou
+[http://localhost:3001/gui/](http://localhost:3001/gui/).
+
+A porta padrão é `3001`. Se ela estiver ocupada,
+`just painel 3002` (ou outro número livre) e use esse número na URL.
+`just painel 3000` sobe na 3000 quando essa porta estiver livre.
+
+Abra uma aba. Leia as faixas DevOps e MLOps uma vez, ainda sem enviar.
+Na aba Tokens, escreva `bom dia` e Enviar. O pedido entra no log da aba;
+as faixas atualizam. Os três formulários (texto, `x`, brilho) estão em
+[As três abas](#as-três-abas).
+
+Se uma faixa pedir relatório: no outro terminal, na raiz do clone,
+`just monitor`, e recarregue o browser.
+
+Depois do painel, se quiser os passos isolados:
+
+```bash
+just gerar      # JSONL
+just monitor    # exemplos/*/logs/report_*.json
+just test       # pytest, sem Hugging Face
+```
+
+Detalhe do serviço e dos POST: [`gui/README.md`](gui/README.md).
+
+## O que o painel mostra
+
+[A preencher: abas, formulário, faixas DevOps e MLOps, diagrama.]
+
 ## A mistura do que chega na porta
 
 Segunda-feira: 70 pedidos `/login`, 20 `/busca`, 10 `/checkout`.
@@ -46,6 +96,8 @@ previsto): compare as duas listas. Isso é KS.
 
 Noite na câmera, campanha que encurta texto, mercadoria mais cara: a
 lista recente se afasta da baseline. Esse afastamento é o regime novo.
+
+[Diagrama a preencher.]
 
 ## PSI, no papel
 
@@ -77,6 +129,8 @@ Login: `(0,20 − 0,70) × ln(0,20 / 0,70) = (−0,50) × (−1,253) = 0,626`.
 Busca: a mesma conta com `pb` e `pr` trocados. Checkout: zero.
 
 O `monitor.py` dispara alerta de PSI em 0,2.
+
+[Diagrama a preencher.]
 
 ## KS, no papel
 
@@ -125,7 +179,13 @@ O `monitor.py` dispara alerta de KS em 0,25.
 PSI compara fatias nomeadas. KS compara os números. O mesmo log pode
 mover os dois.
 
-## Exemplos no clone
+[Diagrama a preencher.]
+
+## As três abas
+
+[A preencher: o que enviar e o que notar em tokens, regressão e imagens.]
+
+## Os exemplos no clone
 
 Duas janelas JSONL, `monitor.py`, relatório. Código de saída 1 se algum
 alerta acendeu.
@@ -137,28 +197,3 @@ alerta acendeu.
 | [`exemplos/imagens/`](exemplos/imagens/) | imagem → brilho médio e rótulo | PSI nos baldes de brilho; KS no brilho contínuo |
 
 Cada pasta tem README próprio.
-
-## Como rodar
-
-```bash
-cd ~/mlops-monitoramento
-just setup
-```
-
-`just setup` sincroniza o ambiente, gera os três pares de log, roda os
-três monitores (código 1 = alerta nas janelas recentes deste material) e
-os testes.
-
-A primeira execução de `exemplos/tokens/` baixa o tokenizer para
-`hf-cache/` na raiz do clone (vocabulário; a rede completa fica de fora).
-Precisa de rede nessa etapa.
-
-```bash
-just gerar      # JSONL
-just monitor    # exemplos/*/logs/report_*.json
-just test       # pytest, sem Hugging Face
-just painel     # http://127.0.0.1:8765/gui/ (tokens, regressão e imagens)
-```
-
-Python 3.11+, [uv](https://docs.astral.sh/uv/), `just`. Painel: [`gui/README.md`](gui/README.md).
-Decisões: [`docs/adr/INDEX.md`](docs/adr/INDEX.md).

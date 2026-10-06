@@ -8,46 +8,111 @@
   <link rel="stylesheet" href="painel.css">
 </head>
 <body>
-  <header>
+  <header class="topo">
     <h1>Painel de monitoramento</h1>
-    <p>Tokens, regressão e imagens no mesmo painel. Lê
-      <code>exemplos/*/logs/report_*.json</code>.</p>
-    <p>
-      <button type="button" data-acao="recarregar">Recarregar</button>
-      <span id="status-carga"></span>
-    </p>
+    <p class="sub">Uma aba por modelo. DevOps = o serviço. MLOps = o modelo. O contrato OpenAPI fica no fim da aba.</p>
+    <p class="stamp" id="status-carga"></p>
   </header>
-  <main class="colunas">
-    <article id="col-tokens">
+  <nav class="abas" role="tablist" aria-label="Modelos">
+    <button type="button" role="tab" id="tab-tokens" aria-controls="painel-tokens" aria-selected="true" data-aba="tokens">Tokens</button>
+    <button type="button" role="tab" id="tab-regressao" aria-controls="painel-regressao" aria-selected="false" data-aba="regressao">Regressão</button>
+    <button type="button" role="tab" id="tab-imagens" aria-controls="painel-imagens" aria-selected="false" data-aba="imagens">Imagens</button>
+  </nav>
+  <main>
+    <section class="aba-corpo" role="tabpanel" id="painel-tokens" aria-labelledby="tab-tokens">
       <h2>Tokens</h2>
       <p class="estado" id="estado-tokens"></p>
-      <table>
-        <thead>
-          <tr><th>Métrica</th><th>Valor</th><th>Alerta</th></tr>
-        </thead>
-        <tbody id="corpo-tokens"></tbody>
-      </table>
-    </article>
-    <article id="col-regressao">
+      <form id="form-tokens" class="pedido">
+        <label for="campo-texto">Texto pt_BR</label>
+        <textarea id="campo-texto" name="texto" rows="3" required></textarea>
+        <p class="ajuda">O tokenizer conta peças (tokens), não palavras. “chegou” pode virar mais de um token.</p>
+        <button type="submit">Enviar</button>
+      </form>
+      <div class="faixas">
+        <article class="faixa faixa-devops">
+          <h3>DevOps</h3>
+          <p class="faixa-lead">O processo: quantos pedidos, quanto demorou, se o serviço quebrou.</p>
+          <div class="grade" id="corpo-devops-tokens"></div>
+        </article>
+        <article class="faixa faixa-mlops">
+          <h3>MLOps</h3>
+          <p class="faixa-lead">A mistura do texto: fatias curto / médio / longo de <code>n_tokens</code>.</p>
+          <div class="grade" id="corpo-mlops-tokens"></div>
+        </article>
+      </div>
+      <section class="swagger" aria-label="OpenAPI Tokens">
+        <h3>OpenAPI — Tokens</h3>
+        <p class="swagger-path"><span class="metodo">POST</span> <code>/tokens</code></p>
+        <p>Corpo JSON. Campo obrigatório: <code>texto</code> (string). BentoML: mesmo contrato em <a href="/">/</a>.</p>
+        <pre class="exemplo">{ "texto": "O pedido chegou atrasado." }</pre>
+        <p>Resposta 200: <code>pedido</code> (linha do log, com <code>n_tokens</code>) e <code>relatorio</code>.</p>
+        <iframe class="swagger-vivo" title="Swagger BentoML — tokens" src="/"></iframe>
+      </section>
+    </section>
+    <section class="aba-corpo" role="tabpanel" id="painel-regressao" aria-labelledby="tab-regressao" hidden>
       <h2>Regressão</h2>
       <p class="estado" id="estado-regressao"></p>
-      <table>
-        <thead>
-          <tr><th>Métrica</th><th>Valor</th><th>Alerta</th></tr>
-        </thead>
-        <tbody id="corpo-regressao"></tbody>
-      </table>
-    </article>
-    <article id="col-imagens">
+      <p class="ultimo" id="ultimo-regressao" hidden></p>
+      <form id="form-regressao" class="pedido">
+        <label for="campo-x">x (entrada da reta)</label>
+        <input id="campo-x" name="x" type="number" step="any" required>
+        <p class="ajuda">Número que o modelo vê. A reta devolve ŷ = a·x + b. Esse ŷ entra no KS e no PSI mesmo sem rótulo.</p>
+        <label for="campo-y">y observado (rótulo; opcional)</label>
+        <input id="campo-y" name="y_obs" type="number" step="any">
+        <p class="ajuda">O valor <strong>real</strong> medido no mundo para esse x (o preço que de fato ocorreu). Sem esse campo o pedido ainda prevê ŷ, mas o MAE (erro do modelo) ignora a linha. A taxa de falha em DevOps conta crash do serviço; o MAE conta |y observado − ŷ|.</p>
+        <button type="submit">Enviar</button>
+      </form>
+      <div class="faixas">
+        <article class="faixa faixa-devops">
+          <h3>DevOps</h3>
+          <p class="faixa-lead">O processo: janela, latência, falha de software. A taxa de falha <em>não</em> é o erro da reta.</p>
+          <div class="grade" id="corpo-devops-regressao"></div>
+        </article>
+        <article class="faixa faixa-mlops">
+          <h3>MLOps</h3>
+          <p class="faixa-lead">A reta: ŷ, misturas baixo/médio/alto, e MAE só onde existe y observado.</p>
+          <div class="grade" id="corpo-mlops-regressao"></div>
+        </article>
+      </div>
+      <section class="swagger" aria-label="OpenAPI Regressão">
+        <h3>OpenAPI — Regressão</h3>
+        <p class="swagger-path"><span class="metodo">POST</span> <code>/regressao</code></p>
+        <p>Corpo JSON. Obrigatório: <code>x</code> (number). Opcional: <code>y_obs</code> (number, o rótulo). BentoML: <a href="/">/</a>.</p>
+        <pre class="exemplo">{ "x": 30, "y_obs": 90 }</pre>
+        <p>Resposta 200: <code>pedido.y_hat</code> sempre; <code>pedido.y_obs</code> e <code>pedido.residual</code> só se você mandou o rótulo (senão <code>null</code>); <code>relatorio.mae</code> usa só linhas com rótulo.</p>
+        <iframe class="swagger-vivo" title="Swagger BentoML — regressão" src="/"></iframe>
+      </section>
+    </section>
+    <section class="aba-corpo" role="tabpanel" id="painel-imagens" aria-labelledby="tab-imagens" hidden>
       <h2>Imagens</h2>
       <p class="estado" id="estado-imagens"></p>
-      <table>
-        <thead>
-          <tr><th>Métrica</th><th>Valor</th><th>Alerta</th></tr>
-        </thead>
-        <tbody id="corpo-imagens"></tbody>
-      </table>
-    </article>
+      <form id="form-imagens" class="pedido">
+        <label for="campo-brilho">Brilho médio 0–1</label>
+        <input id="campo-brilho" name="brilho" type="number" min="0" max="1" step="0.01" value="0.2" required>
+        <p class="ajuda">0 é um cinza quase preto; 1 é quase branco. O classificador devolve escuro / medio / claro.</p>
+        <button type="submit">Enviar</button>
+      </form>
+      <div class="faixas">
+        <article class="faixa faixa-devops">
+          <h3>DevOps</h3>
+          <p class="faixa-lead">O processo: janela, latência, falha de software.</p>
+          <div class="grade" id="corpo-devops-imagens"></div>
+        </article>
+        <article class="faixa faixa-mlops">
+          <h3>MLOps</h3>
+          <p class="faixa-lead">Entrada (brilho), saída (rótulo), confiança.</p>
+          <div class="grade" id="corpo-mlops-imagens"></div>
+        </article>
+      </div>
+      <section class="swagger" aria-label="OpenAPI Imagens">
+        <h3>OpenAPI — Imagens</h3>
+        <p class="swagger-path"><span class="metodo">POST</span> <code>/imagens</code></p>
+        <p>Corpo JSON. Campo obrigatório: <code>brilho</code> (number em [0, 1]). BentoML: <a href="/">/</a>.</p>
+        <pre class="exemplo">{ "brilho": 0.2 }</pre>
+        <p>Resposta 200: <code>pedido</code> (rótulo, confiança) e <code>relatorio</code>.</p>
+        <iframe class="swagger-vivo" title="Swagger BentoML — imagens" src="/"></iframe>
+      </section>
+    </section>
   </main>
   <script src="painel.js" defer></script>
 </body>

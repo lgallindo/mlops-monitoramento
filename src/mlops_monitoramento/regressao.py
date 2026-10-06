@@ -6,6 +6,7 @@ KS compara as duas listas de ŷ.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -39,3 +40,17 @@ def faixa_yhat(yhat: float) -> str:
     if yhat < 80:
         return "medio"
     return "alto"
+
+
+def erro_absoluto_medio(rows: list[dict[str, Any]]) -> tuple[float | None, int]:
+    """MAE só nos pedidos que trouxeram y_obs (rótulo). Sem rótulo, o pedido não entra."""
+    erros: list[float] = []
+    for row in rows:
+        y_obs = row.get("y_obs")
+        y_hat = row.get("y_hat")
+        if y_obs is None or y_hat is None:
+            continue
+        erros.append(abs(float(y_obs) - float(y_hat)))
+    if not erros:
+        return None, 0
+    return sum(erros) / len(erros), len(erros)

@@ -17,5 +17,9 @@ monitor:
 test:
     uv run pytest -q
 
-painel:
-    uv run python gui/servidor.py
+painel porta="3001":
+    uv run bentoml serve service:Painel --host 127.0.0.1 --port {{porta}}
+
+swagger porta="3001":
+    @echo "http://127.0.0.1:{{porta}}/"
+    xdg-open http://127.0.0.1:{{porta}}/ >/dev/null 2>&1 || true
