@@ -22,7 +22,7 @@ p95 ← ys[k]
 Dez latências, em ms: `10, 11, 10, 12, 11, 13, 12, 14, 12, 80`.
 
 Ordenadas: `10, 10, 11, 11, 12, 12, 12, 13, 14, 80`.
-`k = inteiro(0,95 × 9) = 8`, então p95 = 14. A média é 18,5 por causa do
+`k = inteiro(0,95 × 9) = 8` (o nono valor da lista ordenada), então p95 = 14. A média é 18,5 por causa do
 `80`. Quase todos os pedidos saíram em 14 ms; um ficou em 80.
 
 Erro e p95 estáveis deixam a faixa DevOps do painel em ritmo de processo
@@ -32,9 +32,9 @@ porta é a outra medição, na faixa MLOps.
 ## O que fazer nesta página
 
 Abrir o painel, enviar pedidos pelos formulários e ler as duas faixas:
-DevOps (processo) e MLOps (mistura e saída do modelo). Os nomes nos
-cards do browser são a lenda. As contas de p95, PSI e KS estão abaixo,
-para quando a faixa pedir o porquê.
+DevOps (processo) e MLOps (mistura e saída do modelo). Os títulos dos
+cards no browser nomeiam cada métrica. As contas de p95, PSI e KS estão
+abaixo, para quando um card pedir o porquê.
 
 ## Abrir o painel
 
@@ -56,17 +56,16 @@ Esse comando ocupa o terminal. Deixe-o aberto e vá ao browser:
 [http://127.0.0.1:3001/gui/](http://127.0.0.1:3001/gui/) ou
 [http://localhost:3001/gui/](http://localhost:3001/gui/).
 
-A porta padrão é `3001`. Se ela estiver ocupada,
-`just painel 3002` (ou outro número livre) e use esse número na URL.
-`just painel 3000` sobe na 3000 quando essa porta estiver livre.
+A porta padrão é `3001`. Se ela estiver ocupada, `just painel 3002`
+(ou outro número livre) e troque só esse número na URL.
 
-Abra uma aba. Leia as faixas DevOps e MLOps uma vez, ainda sem enviar.
-Na aba Tokens, escreva `bom dia` e Enviar. O pedido entra no log da aba;
+Na aba Tokens, leia as faixas DevOps e MLOps uma vez, ainda sem enviar.
+Escreva `bom dia` e Enviar. O pedido entra no log da aba;
 as faixas atualizam. Os três formulários (texto, `x`, brilho) estão em
 [As três abas](#as-três-abas).
 
-Se uma faixa pedir relatório: no outro terminal, na raiz do clone,
-`just monitor`, e recarregue o browser.
+Se um card disser que falta o relatório JSON: noutro terminal, na raiz
+do clone, `just monitor`, e recarregue o browser.
 
 Depois do painel, se quiser os passos isolados:
 
@@ -106,7 +105,7 @@ mudam um pouco por aba; no conjunto aparecem:
 
 A taxa de falha conta o serviço que quebrou. O MAE conta
 `|y observado − ŷ|` só nos pedidos em que o rótulo veio no formulário.
-Os nomes no painel batem com esses cards; leia o que a faixa já escreve.
+Os títulos no painel batem com esses cards; leia o texto que a faixa já traz.
 
 Depois de enviar `bom dia` e ver o resultado em Tokens, abra Regressão e
 Imagens só para reconhecer o mesmo esqueleto. Os envios dessas abas
@@ -266,9 +265,9 @@ usar a linha. Sem esse campo o pedido ainda prevê `ŷ`; o MAE ignora a
 linha. A `taxa de falha do serviço` continua sendo crash do código.
 
 **Imagens.** Brilho médio 0–1 → balde, rótulo `escuro` / `medio` /
-`claro`, confiança. A recente gerada é mais escura. Envie `0,15` (o
-campo usa ponto: `0.15`). Olhe PSI de brilho, PSI de rótulo, KS de
-brilho e confiança média.
+`claro`, confiança. A recente gerada é mais escura. No campo, envie
+`0.15`. Olhe PSI de brilho, PSI de rótulo, KS de brilho e confiança
+média.
 
 ## Os exemplos no clone
 
