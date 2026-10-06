@@ -1,11 +1,5 @@
 /* Abas, GET dos relatórios, POST, cartões DevOps / MLOps. */
 
-const F_JANELA =
-  "# n_base — pedidos no baseline.jsonl (passado de referência)\n" +
-  "# n_rec  — pedidos no recente.jsonl (o que chegou agora)\n" +
-  "n_base = |baseline|\n" +
-  "n_rec  = |recente|";
-
 const F_P95 =
   "# tempos — latency_ms da recente, já ordenados do menor para o maior\n" +
   "# n_rec  — quantos tempos existem\n" +
@@ -21,15 +15,26 @@ const F_ERR =
   "# Mede o serviço. O modelo pode errar a resposta e isto continuar 0.";
 
 const F_PSI =
-  "# peso_antigo — fração desta fatia no baseline (ex.: 80 curtos / 100 = 0,80)\n" +
-  "# peso_novo   — fração da mesma fatia na recente (ex.: 20 / 100 = 0,20)\n" +
-  "# parcela     — (peso_novo − peso_antigo) × ln(peso_novo / peso_antigo)\n" +
-  "# PSI         — soma das parcelas de todas as fatias\n" +
-  "peso_antigo ← 80/100 = 0,80\n" +
-  "peso_novo   ← 20/100 = 0,20\n" +
-  "parcela     ← (0,20 − 0,80) × ln(0,20/0,80) ≈ 0,83\n" +
-  "PSI         ← parcela_curto + parcela_médio + parcela_longo\n" +
-  "# Alerta se PSI ≥ 0,2: a mistura de fatias mudou.";
+  "# Fatia = um balde (curto/médio/longo, baixo/médio/alto, …).\n" +
+  "# peso = pedidos nesta fatia / pedidos no total.\n" +
+  "# peso_antigo — esse peso no baseline\n" +
+  "# peso_novo   — esse peso na recente\n" +
+  "# parcela     — contribuição desta fatia\n" +
+  "# PSI         — soma das parcelas (todas as fatias)\n" +
+  "\n" +
+  "# Exemplo, só a fatia «curto»:\n" +
+  "#   baseline 80 em 100  →  peso_antigo = 0,80\n" +
+  "#   recente  20 em 100  →  peso_novo   = 0,20\n" +
+  "# A fatia encolheu. A parcela é positiva mesmo assim:\n" +
+  "parcela ← (peso_novo − peso_antigo) × ln(peso_novo / peso_antigo)\n" +
+  "        ← (0,20 − 0,80) × ln(0,20 / 0,80)\n" +
+  "        ← (−0,60) × ln(0,25) ≈ 0,83\n" +
+  "# ln(razão dos pesos) = tamanho relativo da mudança.\n" +
+  "# (peso_novo − peso_antigo) = quanto a fatia ganhou ou perdeu.\n" +
+  "# Os dois fatores têm o mesmo sinal, então a parcela ≥ 0.\n" +
+  "# Fatia estável (0,80 e 0,80): diferença 0, parcela 0.\n" +
+  "PSI ← parcela_curto + parcela_médio + parcela_longo\n" +
+  "# < 0,1 pouco; 0,1–0,2 atenção; ≥ 0,2 alerta (mistura mudou).";
 
 const F_KS =
   "# F_antigo(t) — fração do baseline com valor ≤ t\n" +
@@ -62,13 +67,6 @@ const FONTES = {
     metricas: (r) => ({
       devops: [
         {
-          nome: "n baseline / n recente",
-          valor: r.n_baseline + " / " + r.n_recente,
-          alerta: false,
-          desc: "Tamanho das duas janelas de log. Baseline = passado de referência. Recente = o que chegou agora.",
-          formula: F_JANELA,
-        },
-        {
           nome: "p95 de latência (ms)",
           valor: r.latency_p95_ms,
           alerta: r.alert_latency,
@@ -88,7 +86,7 @@ const FONTES = {
           nome: "PSI de n_tokens",
           valor: r.psi_n_tokens_bin,
           alerta: r.alert_prompt_mix,
-          desc: "Os textos novos são mais curtos ou mais longos que os do baseline? PSI alto = a mistura de fatias mudou.",
+          desc: "Cada texto cai numa fatia curto / médio / longo. PSI soma, fatia a fatia, quanto esses pesos saíram do baseline. Um número; ≥ 0,2 = alerta.",
           formula: F_PSI,
         },
       ],
@@ -102,13 +100,6 @@ const FONTES = {
     mlops: "corpo-mlops-regressao",
     metricas: (r) => ({
       devops: [
-        {
-          nome: "n baseline / n recente",
-          valor: r.n_baseline + " / " + r.n_recente,
-          alerta: false,
-          desc: "Tamanho das duas janelas de log.",
-          formula: F_JANELA,
-        },
         {
           nome: "p95 de latência (ms)",
           valor: r.latency_p95_ms,
@@ -160,13 +151,6 @@ const FONTES = {
     mlops: "corpo-mlops-imagens",
     metricas: (r) => ({
       devops: [
-        {
-          nome: "n baseline / n recente",
-          valor: r.n_baseline + " / " + r.n_recente,
-          alerta: false,
-          desc: "Tamanho das duas janelas de log.",
-          formula: F_JANELA,
-        },
         {
           nome: "p95 de latência (ms)",
           valor: r.latency_p95_ms,

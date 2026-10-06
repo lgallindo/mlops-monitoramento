@@ -3,8 +3,9 @@
 Uma aba por modelo. Em cada aba: formulário, faixa DevOps, faixa MLOps e,
 no fim, o Swagger do BentoML (`/`).
 
+Na raiz do clone:
+
 ```bash
-cd ~/mlops-monitoramento
 just monitor || true
 just painel
 ```
