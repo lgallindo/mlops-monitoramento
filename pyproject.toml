@@ -1,0 +1,26 @@
+[project]
+name = "mlops-monitoramento"
+version = "0.1.0"
+description = "Monitoramento de modelos: PSI, KS, p95, tokens pt_BR, drift de imagem"
+readme = "README.md"
+authors = [
+    { name = "Lucas Gallindo", email = "15238731+lgallindo@users.noreply.github.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.4.6",
+    "pillow>=12.3.0",
+    "transformers>=5.18.0",
+]
+
+[project.scripts]
+mlops-monitoramento = "mlops_monitoramento:main"
+
+[build-system]
+requires = ["uv_build>=0.12.8,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
