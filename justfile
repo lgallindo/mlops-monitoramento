@@ -16,3 +16,6 @@ monitor:
 
 test:
     uv run pytest -q
+
+painel:
+    uv run python gui/servidor.py

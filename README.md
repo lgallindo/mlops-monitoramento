@@ -157,6 +157,8 @@ Precisa de rede nessa etapa.
 just gerar      # JSONL
 just monitor    # exemplos/*/logs/report_*.json
 just test       # pytest, sem Hugging Face
+just painel     # http://127.0.0.1:8765/gui/ (tokens, regressão e imagens)
 ```
 
-Python 3.11+, [uv](https://docs.astral.sh/uv/), `just`.
+Python 3.11+, [uv](https://docs.astral.sh/uv/), `just`. Painel: [`gui/README.md`](gui/README.md).
+Decisões: [`docs/adr/INDEX.md`](docs/adr/INDEX.md).

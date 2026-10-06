@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel de monitoramento</title>
+  <link rel="stylesheet" href="vendor/simple-2.3.7.css">
+  <link rel="stylesheet" href="painel.css">
+</head>
+<body>
+  <header>
+    <h1>Painel de monitoramento</h1>
+    <p>Tokens, regressão e imagens no mesmo painel. Lê
+      <code>exemplos/*/logs/report_*.json</code>.</p>
+    <p>
+      <button type="button" data-acao="recarregar">Recarregar</button>
+      <span id="status-carga"></span>
+    </p>
+  </header>
+  <main class="colunas">
+    <article id="col-tokens">
+      <h2>Tokens</h2>
+      <p class="estado" id="estado-tokens"></p>
+      <table>
+        <thead>
+          <tr><th>Métrica</th><th>Valor</th><th>Alerta</th></tr>
+        </thead>
+        <tbody id="corpo-tokens"></tbody>
+      </table>
+    </article>
+    <article id="col-regressao">
+      <h2>Regressão</h2>
+      <p class="estado" id="estado-regressao"></p>
+      <table>
+        <thead>
+          <tr><th>Métrica</th><th>Valor</th><th>Alerta</th></tr>
+        </thead>
+        <tbody id="corpo-regressao"></tbody>
+      </table>
+    </article>
+    <article id="col-imagens">
+      <h2>Imagens</h2>
+      <p class="estado" id="estado-imagens"></p>
+      <table>
+        <thead>
+          <tr><th>Métrica</th><th>Valor</th><th>Alerta</th></tr>
+        </thead>
+        <tbody id="corpo-imagens"></tbody>
+      </table>
+    </article>
+  </main>
+  <script src="painel.js" defer></script>
+</body>
+</html>

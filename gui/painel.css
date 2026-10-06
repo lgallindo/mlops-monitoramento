@@ -1,0 +1,30 @@
+/* Painel lado a lado. Camada sobre Simple.css. Sem estilos no HTML. */
+
+.colunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 70rem) {
+  .colunas {
+    grid-template-columns: 1fr;
+  }
+}
+
+article table {
+  width: 100%;
+}
+
+tr.alerta td {
+  background: #f4d6d6;
+}
+
+.estado.ausente {
+  color: #6b2c2c;
+}
+
+.estado.ok {
+  color: #1e4d2b;
+}
