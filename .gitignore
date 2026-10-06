@@ -9,3 +9,4 @@ exemplos/**/logs/*.jsonl
 exemplos/**/logs/report_*.json
 .env
 .env.*
+GENAI-SPEECH-PATTERNS.md

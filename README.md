@@ -1,141 +1,142 @@
-# Monitoramento de modelos — um repositório, três exemplos
+# Monitoramento
 
-Um pedido chega. O serviço responde. O log guarda **o que entrou**, **o que saiu**,
-**quanto demorou** e **se quebrou**. Na semana seguinte você abre duas janelas
-desse log — a de quando o modelo merecia confiança, e a de agora — e pergunta
-se o mundo na frente do modelo ainda é o mesmo.
+Um serviço no ar responde a pedidos. No log de cada pedido cabem o tempo
+(`latency_ms`) e se houve erro. A taxa de erro é a fração de linhas com
+falha. A latência é `t_fim − t_início`.
 
-Este repositório ensina essa pergunta com quatro instrumentos:
-
-| Instrumento | Olha para | Em uma frase |
-| --- | --- | --- |
-| **Latência** | tempo de cada pedido | “Quanto o usuário esperou?” |
-| **p95** | a fila ordenada desses tempos | “95% dos pedidos terminaram até este valor; o resto é a cauda lenta.” |
-| **PSI** | coisas que caem em **baldes** (escuro/médio/claro, prompt curto/longo) | “A fatia de cada balde mudou de uma janela para a outra?” |
-| **KS** | coisas que são um **número contínuo** (preço previsto, brilho médio) | “As duas pilhas de números têm forma parecida?” |
-
-Os quatro existem porque um único resumo mente. A média de tempo esconde os
-cinco pedidos presos. A acurácia de ontem esconde que hoje a câmera escureceu.
-O gráfico bonito da semana de treino esconde que o texto que chega agora é
-só “ok” e “vlw”.
-
-## Estatística do tamanho de um copo
-
-Você **não** precisa lembrar da prova do teorema. Precisa saber **ordenar**,
-**contar fatias** e **comparar duas listas**.
-
-**Latência** é o relógio: `t_fim − t_início`, em milissegundos. Cada linha do
-log tem a sua.
-
-**p95** (percentil 95):
+A média desses tempos descreve o dia típico e esconde a cauda. p95
+(percentil 95) é o valor que 95% dos pedidos já bateram, depois de ordenar
+a lista.
 
 ```text
 # Variáveis:
-# xs — lista de latency_ms da janela recente
-# ys — xs ordenada do menor para o maior
-# k  — posição a 95% do caminho nessa lista
+# xs — latências da janela
+# ys — xs ordenada
+# k  — índice a 95% do caminho
 
 ys ← ordenar(xs)
 k  ← inteiro(0.95 × (tamanho(ys) − 1))
 p95 ← ys[k]
 ```
 
-Se o p95 sobe, a experiência ruim já chegou para muita gente, mesmo quando a
-média ainda parece educada. O limiar (8 ms, 25 ms…) é **política da squad**,
-combinada no `monitor.py`.
+Dez latências, em ms: `10, 11, 10, 12, 11, 13, 12, 14, 12, 80`.
 
-**PSI** (Population Stability Index — índice de estabilidade da população).
-Nasceu em crédito: “a mistura de clientes mudou?”. Aqui: você parte o mundo
-em baldes, conta a fração de cada balde no *baseline* (`pb`) e na janela
-*recente* (`pr`), e soma:
+Ordenadas: `10, 10, 11, 11, 12, 12, 12, 13, 14, 80`.
+`k = inteiro(0,95 × 9) = 8`, então p95 = 14. A média é 18,5 por causa do
+`80`. Quase todos os pedidos saíram em 14 ms; um ficou em 80.
+
+Erro e p95 estáveis deixam o painel de DevOps verde. Esse painel mede o
+processo. A mistura do que chega na porta é outra medição.
+
+## A mistura do que chega na porta
+
+Segunda-feira: 70 pedidos `/login`, 20 `/busca`, 10 `/checkout`.
+Esta semana: 20 `/login`, 70 `/busca`, 10 `/checkout`.
+
+Latência e 5xx podem ser os de sempre. As fatias de rota mudaram. Uma
+regra ou um modelo ajustados na mistura antiga passam a ver outra
+distribuição de entrada. O log já traz esses números. Compare uma janela
+*baseline* (o acordo) com uma janela *recente*.
+
+Coisa com nome de balde (rota, cidade, faixa de tokens, rótulo
+`escuro`/`claro`): compare as fatias. Isso é PSI.
+
+Coisa que é número numa reta (bytes do payload, brilho médio, preço
+previsto): compare as duas listas. Isso é KS.
+
+Noite na câmera, campanha que encurta texto, mercadoria mais cara: a
+lista recente se afasta da baseline. Esse afastamento é o regime novo.
+
+## PSI, no papel
+
+PSI (Population Stability Index). Para cada balde, `pb` é a fração no
+baseline e `pr` a fração na janela recente:
 
 ```text
 # Variáveis:
 # pb — fração do balde no baseline
-# pr — fração do mesmo balde na janela recente
-# psi — soma sobre todos os baldes
+# pr — fração do mesmo balde na recente
+# psi — soma sobre os baldes
 
 psi ← Σ (pr − pb) × ln(pr / pb)
 ```
 
-Mistura igual → PSI perto de 0. Mistura outra → PSI cresce. Neste repo o
-alerta dispara em **0,2**. De novo: política, não lei da física.
+Janelas iguais deixam PSI perto de 0. Fatias que trocam de lugar fazem
+PSI crescer.
 
-**KS** (Kolmogorov–Smirnov de duas amostras). PSI precisa de baldes que
-alguém inventou. KS trabalha com o número cru. Imagine duas escadas: cada
-observação sobe um degrau de altura `1/n`. KS é o **maior vão vertical**
-entre as duas escadas.
+Tráfego de 100 pedidos:
+
+| balde | n baseline | n recente | pb | pr | (pr − pb) × ln(pr / pb) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| login | 70 | 20 | 0,70 | 0,20 | 0,626 |
+| busca | 20 | 70 | 0,20 | 0,70 | 0,626 |
+| checkout | 10 | 10 | 0,10 | 0,10 | 0,000 |
+| PSI | | | | | 1,253 |
+
+Login: `(0,20 − 0,70) × ln(0,20 / 0,70) = (−0,50) × (−1,253) = 0,626`.
+Busca: a mesma conta com `pb` e `pr` trocados. Checkout: zero.
+
+O `monitor.py` dispara alerta de PSI em 0,2.
+
+## KS, no papel
+
+KS (Kolmogorov–Smirnov de duas amostras) é o maior vão vertical entre
+duas escadas. Cada ponto do baseline sobe `1/n`; cada ponto da recente
+sobe `1/m`. No valor `x`, a altura é a fração de pontos `≤ x`.
 
 ```text
 # Variáveis:
-# a, b — números do baseline e da janela recente
+# a, b — números do baseline e da recente
 # sa, sb — as mesmas listas, ordenadas
-# i, j — quantos pontos de cada lado já foram “passados”
-# d — maior |i/n − j/m|
+# n, m — tamanhos
+# valores — união ordenada dos números distintos
+# i, j — quantos pontos de cada amostra são ≤ o valor corrente
+# d — máximo de |i/n − j/m|
 
 sa ← ordenar(a); sb ← ordenar(b)
 n ← tamanho(sa); m ← tamanho(sb)
 i ← 0; j ← 0; d ← 0
-para cada valor distinto x na união das duas listas:
-    avance i e j até cobrir todos os pontos ≤ x
+para cada x em valores:
+    avance i enquanto sa[i] ≤ x
+    avance j enquanto sb[j] ≤ x
     d ← máximo(d, |i/n − j/m|)
 ```
 
-`d = 0` → as duas nuvens coincidem. `d` grande → uma nuvem mora noutro
-pedaço da reta (preços previstos todos mais altos; imagens todas mais
-escuras). Aqui o alerta dispara em **0,25**.
+Payloads (KB), cinco pedidos em cada janela:
 
-PSI e KS no mesmo log: PSI pergunta “os rótulos que inventamos mudaram de
-proporção?”; KS pergunta “os números por baixo desses rótulos se
-empurraram?”. Os dois podem acender juntos. Isso é didático, não um erro.
+- baseline `a = (1, 2, 3, 4, 5)`
+- recente `b = (3, 4, 5, 6, 7)`
 
-## O que o aluno já sabe é suficiente
+| x | fração baseline ≤ x | fração recente ≤ x | vão |
+| ---: | ---: | ---: | ---: |
+| 1 | 0,2 | 0,0 | 0,2 |
+| 2 | 0,4 | 0,0 | 0,4 |
+| 3 | 0,6 | 0,2 | 0,4 |
+| 4 | 0,8 | 0,4 | 0,4 |
+| 5 | 1,0 | 0,6 | 0,4 |
+| 6 | 1,0 | 0,8 | 0,2 |
+| 7 | 1,0 | 1,0 | 0,0 |
 
-- **ML lembrado pela metade:** um modelo é uma função `entrada → saída`
-  que alguém congelou. Monitorar é olhar o **diário** dessa função, não
-  retreinar na hora.
-- **Classificação:** saída = nome de balde (`escuro`). Confiança neste
-  material = um número heurístico no log, **não** uma probabilidade
-  calibrada de prova.
-- **Regressão:** saída = número (`ŷ` = preço previsto). KS entra aqui
-  porque `ŷ` já vive numa reta.
-- **Texto / LLM:** o modelo (e a fatura) fala em **tokens**, não em
-  palavras. Contar tokens é o primeiro número honesto do log de NLP.
+KS = 0,4. A recente está deslocada para valores maiores. Listas iguais
+dão vão 0 em cada linha e KS = 0.
 
-## Três exemplos no mesmo hábito
+O `monitor.py` dispara alerta de KS em 0,25.
 
-O hábito é sempre: gerar duas janelas JSONL → `monitor.py` imprime um
-relatório → código de saída 1 se algum alerta acendeu.
+PSI compara fatias nomeadas. KS compara os números. O mesmo log pode
+mover os dois.
 
-### 1. Contagem de tokens (`exemplos/tokens/`)
+## Exemplos no clone
 
-Textos em português passam pelo tokenizer
-`adalbertojunior/distilbert-portuguese-cased` (DistilBERT destilado do
-BERTimbau, ~66M parâmetros — o menor encoder pt_BR estável que usamos
-aqui). **Só o tokenizer é baixado**; a rede inteira fica de fora.
+Duas janelas JSONL, `monitor.py`, relatório. Código de saída 1 se algum
+alerta acendeu.
 
-`n_tokens = len(tokenizer.encode(texto))`. O campo no JSONL copia o
-formato de `teaching/mlops-cc02173-aula8/log_predict.py` (`n_tokens` por
-pedido). A aula 8 contava pares CRF; aqui o número é o do WordPiece.
+| Pasta | Entrada no log | O que o monitor compara |
+| --- | --- | --- |
+| [`exemplos/tokens/`](exemplos/tokens/) | texto pt_BR → `n_tokens` (tokenizer DistilBERT português) | PSI nos baldes curto/médio/longo; p95 da latência do `encode` |
+| [`exemplos/regressao/`](exemplos/regressao/) | `x` → `ŷ = a·x + b` (reta do baseline) | KS na lista de `ŷ`; PSI nos baldes baixo/médio/alto |
+| [`exemplos/imagens/`](exemplos/imagens/) | imagem → brilho médio e rótulo | PSI nos baldes de brilho; KS no brilho contínuo |
 
-Janela recente vira mensagem curta (`ok`, `vlw`). PSI nos baldes
-`curto/medio/longo` acende. p95 da latência do `encode` também entra no
-relatório.
-
-### 2. KS numa regressão (`exemplos/regressao/`)
-
-`ŷ = a·x + b`, ajustado **só** no baseline (metragem → preço de
-brinquedo). A janela recente manda `x` bem maior. A reta é a mesma; a
-nuvem de `ŷ` caminha para a direita. **KS compara as duas nuvens de `ŷ`**.
-PSI nos baldes `baixo/medio/alto` acompanha. Há linhas com `"error": true`
-para o `error_rate` aparecer de verdade.
-
-### 3. Drift em quem recebe imagem (`exemplos/imagens/`)
-
-Imagem sintética → brilho médio → `{escuro, medio, claro}`. Igual ao
-contrato de `teaching/mlops-monitor-imagem-processamento/`. PSI nos baldes
-de brilho e de rótulo; **KS no brilho contínuo** (o número 0–1, sem
-balde). Confiança média e taxa de erro vão no mesmo JSON.
+Cada pasta tem README próprio.
 
 ## Como rodar
 
@@ -145,16 +146,16 @@ just setup
 ```
 
 `just setup` sincroniza o ambiente, gera os três pares de log, roda os
-três monitores (código 1 = alerta, esperado nas janelas “doentes”) e os
-testes.
+três monitores (código 1 = alerta nas janelas recentes deste material) e
+os testes.
 
-Primeira vez em `exemplos/tokens/`: o tokenizer baixa para `hf-cache/`
-(alguns megabytes de vocabulário, não os 66M da rede). Rede necessária
-nessa etapa.
+A primeira execução de `exemplos/tokens/` baixa o tokenizer para
+`hf-cache/` na raiz do clone (vocabulário; a rede completa fica de fora).
+Precisa de rede nessa etapa.
 
 ```bash
-just gerar      # só os JSONL
-just monitor    # só os relatórios em exemplos/*/logs/report_*.json
+just gerar      # JSONL
+just monitor    # exemplos/*/logs/report_*.json
 just test       # pytest, sem Hugging Face
 ```
 

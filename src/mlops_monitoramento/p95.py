@@ -1,4 +1,4 @@
-"""Percentil 95 — o valor que 95% da lista não ultrapassa."""
+"""Percentil 95: o valor que 95% da lista não ultrapassa."""
 
 from __future__ import annotations
 

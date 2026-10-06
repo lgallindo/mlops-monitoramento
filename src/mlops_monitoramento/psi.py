@@ -1,4 +1,4 @@
-"""Population Stability Index — dois histogramas, um número."""
+"""Population Stability Index: dois histogramas, um número."""
 
 from __future__ import annotations
 

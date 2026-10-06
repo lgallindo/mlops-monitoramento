@@ -1,7 +1,5 @@
-"""Classificador de brilho — o “modelo” só lê a média dos pixels.
-
-Mesmo contrato da pasta CESAR `teaching/mlops-monitor-imagem-processamento/`:
-imagem → brilho médio em [0, 1] → {escuro, medio, claro}.
+"""Classificador de brilho: média dos pixels em [0, 1] vira
+{escuro, medio, claro}.
 """
 
 from __future__ import annotations

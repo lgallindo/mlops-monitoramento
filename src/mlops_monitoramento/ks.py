@@ -1,4 +1,4 @@
-"""Kolmogorov–Smirnov de duas amostras — duas pilhas de números, um vão."""
+"""Kolmogorov–Smirnov de duas amostras: duas listas de números, um vão."""
 
 from __future__ import annotations
 

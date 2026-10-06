@@ -1,4 +1,4 @@
-"""PSI, KS, p95 — testes sem Hugging Face."""
+"""PSI, KS, p95: testes sem Hugging Face."""
 
 from __future__ import annotations
 

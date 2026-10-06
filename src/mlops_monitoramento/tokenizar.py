@@ -1,11 +1,8 @@
-"""Contagem explícita de tokens com DistilBERT treinado em português.
+"""Contagem de tokens com DistilBERT treinado em português.
 
-Modelo: `adalbertojunior/distilbert-portuguese-cased` (destilado do BERTimbau,
-~66M parâmetros). Só o *tokenizer* é carregado — os pesos da rede ficam de fora.
-
-O campo `n_tokens` no JSONL segue o hábito de
-`teaching/mlops-cc02173-aula8/log_predict.py`; aqui o número vem de
-`tokenizer.encode`, não de `len(pares CRF)`.
+Modelo Hugging Face: `adalbertojunior/distilbert-portuguese-cased`
+(destilado do BERTimbau, cerca de 66M parâmetros). Só o tokenizer é
+carregado. `n_tokens` é `len(tokenizer.encode(texto))`.
 """
 
 from __future__ import annotations

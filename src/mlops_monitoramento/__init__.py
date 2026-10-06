@@ -1,4 +1,4 @@
-"""Monitoramento de modelos: PSI, KS, p95, tokens, imagem."""
+"""Monitoramento: PSI, KS, p95, tokens, imagem."""
 
 from mlops_monitoramento.ks import alert_ks, ks_two_sample
 from mlops_monitoramento.p95 import alert_p95, p95

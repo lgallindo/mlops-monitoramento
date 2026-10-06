@@ -1,8 +1,6 @@
-"""Regressão linear de brinquedo: preço previsto a partir de um número.
-
-Modelo: ŷ = a·x + b, ajustado nos pares (x, y) do *baseline* (mínimos quadrados).
-A janela recente usa os mesmos a, b — o que muda é a distribuição de x
-(e portanto de ŷ). O KS compara as duas nuvens de ŷ.
+"""Reta ŷ = a·x + b ajustada nos pares (x, y) do baseline (mínimos quadrados).
+A janela recente usa os mesmos a e b. Muda a distribuição de x e portanto de ŷ.
+KS compara as duas listas de ŷ.
 """
 
 from __future__ import annotations
